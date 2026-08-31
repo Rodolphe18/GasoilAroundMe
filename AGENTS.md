@@ -1,34 +1,42 @@
-# Gasoil Around Me — project instructions
+# Gasoil Around Me — instructions du projet
 
-## Product goal
+## Objectif produit
 
-Build a French Android application that helps a user find nearby fuel stations and compare prices. The first release is a free, ad-free prototype for France only.
+Construire une application Android destinée au marché français qui aide l’utilisateur à trouver les stations-service à proximité et à comparer leurs prix. La première version est un prototype gratuit, sans publicité, limité à la France.
 
-The primary screen should be inspired by the two Essence&CO reference screenshots supplied by the user:
+L’écran principal doit s’inspirer des trois captures d’écran d’Essence&CO fournies par l’utilisateur :
 
-- an interactive map in the background;
-- station markers synchronized with the station list;
-- fuel and sorting controls above the list;
-- a draggable Material 3 bottom sheet showing station, city, straight-line distance, selected-fuel price, and price freshness;
-- a station detail view with all available prices, address, hours/services when available, and a navigation action.
+- une carte interactive en arrière-plan ;
+- des marqueurs de stations synchronisés avec la liste ;
+- des commandes de sélection du carburant et de tri au-dessus de la liste ;
+- un bottom sheet Material 3 déplaçable affichant la station, la ville, la distance à vol d’oiseau, le prix du carburant sélectionné et la fraîcheur du prix ;
+- une fiche détaillée affichant tous les prix disponibles, l’adresse, les horaires et services lorsqu’ils sont disponibles, ainsi qu’une action de navigation.
 
-Use the screenshots as UX inspiration, not as assets to copy. Avoid intrusive advertising and unnecessary visual clutter.
+Utiliser les captures comme source d’inspiration pour l’expérience utilisateur, et non comme des ressources à copier. Éviter la publicité intrusive et toute surcharge visuelle inutile.
 
-## Confirmed MVP scope
+Les fichiers de référence visuelle sont placés à la racine du projet :
 
-- Android only, written in Kotlin with Jetpack Compose and Material 3.
-- Minimum SDK 26; preserve the existing application ID `com.francotte.gasoilaroundme`.
-- Google Maps SDK for Android for map rendering.
-- Foreground location only. Never request background location.
-- If location is unavailable or refused, offer city/address search.
-- Fetch fuel stations and prices directly from the official French government API; no backend in the prototype.
-- Calculate distances locally as straight-line distances (Haversine). Do not call a route matrix for list items.
-- Open an installed navigation app through an Android intent for directions to a selected station.
-- No login, account, analytics, advertising, tracking, payment, or push notifications in the MVP.
+- `1788170251615.jpg` : carte et marqueurs de prix colorés ;
+- `Screenshot_2026-08-29-19-02-17-872_com.ripplemotion.android.EssenceLite.jpg` : carte, filtres et liste des stations ;
+- `Screenshot_2026-08-29-19-03-19-708_com.ripplemotion.android.EssenceLite.jpg` : fiche détaillée d’une station.
 
-## Fuel taxonomy
+Ces fichiers sont uniquement des références de conception. Ne pas les intégrer dans l’APK et ne pas reproduire les publicités ou textes promotionnels visibles sur les captures. Les logos d’enseignes peuvent être intégrés séparément dans les conditions définies ci-dessous, à partir de ressources propres et correctement sourcées.
 
-Use these user-facing choices and map them explicitly to the official data fields:
+## Périmètre confirmé du MVP
+
+- Android uniquement, en Kotlin avec Jetpack Compose et Material 3.
+- SDK minimum 26 ; conserver l’identifiant d’application existant `com.francotte.gasoilaroundme`.
+- Google Maps SDK for Android pour afficher la carte.
+- Localisation au premier plan uniquement. Ne jamais demander la localisation en arrière-plan.
+- Si la localisation est indisponible ou refusée, proposer une recherche par ville ou adresse.
+- Récupérer directement les stations et les prix depuis l’API officielle du gouvernement français ; aucun backend pour le prototype.
+- Calculer localement les distances à vol d’oiseau avec la formule de Haversine. Ne pas appeler de matrice d’itinéraires pour les éléments de la liste.
+- Ouvrir une application de navigation installée au moyen d’un intent Android pour guider l’utilisateur vers la station sélectionnée.
+- Aucun compte, aucune authentification, aucune publicité, aucun suivi analytique, aucun pistage, aucun paiement et aucune notification push dans le MVP.
+
+## Nomenclature des carburants
+
+Utiliser les choix suivants dans l’interface et les associer explicitement aux champs des données officielles :
 
 - Gazole
 - SP95-E5
@@ -37,160 +45,195 @@ Use these user-facing choices and map them explicitly to the official data field
 - E85
 - GPL
 
-Do not collapse SP95 and SP98 into a generic `E5` choice. Persist the selected fuel locally if doing so does not require adding unnecessary infrastructure.
+Ne pas fusionner SP95 et SP98 dans un choix générique `E5`. Conserver localement le carburant sélectionné si cela ne nécessite pas l’ajout d’une infrastructure superflue.
 
-## Authoritative external services
+## Services externes de référence
 
-### Fuel stations and prices
+### Stations-service et prix
 
-Use the official dataset `prix-des-carburants-en-france-flux-instantane-v2` from `data.economie.gouv.fr`, through the Opendatasoft Explore API v2.1.
+Utiliser le jeu de données officiel `prix-des-carburants-en-france-flux-instantane-v2` de `data.economie.gouv.fr`, au moyen de l’API Opendatasoft Explore v2.1.
 
-Dataset information:
+Page du jeu de données :
 
 `https://data.economie.gouv.fr/explore/dataset/prix-des-carburants-en-france-flux-instantane-v2/`
 
-Records endpoint base:
+URL de base du point d’accès aux enregistrements :
 
 `https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records`
 
-Treat the upstream schema as untrusted network input:
+Considérer le schéma reçu comme une entrée réseau non fiable :
 
-- tolerate missing/null prices, coordinates, update timestamps, hours, and services;
-- exclude invalid coordinates;
-- preserve the station's official identifier;
-- represent temporary/permanent fuel shortages explicitly;
-- display price freshness and never imply that an old price is current;
-- show a sensible station label based on available official data rather than inventing a brand.
+- accepter les prix, coordonnées, dates de mise à jour, horaires et services absents ou nuls ;
+- exclure les coordonnées invalides ;
+- conserver l’identifiant officiel de la station ;
+- représenter explicitement les ruptures temporaires et définitives ;
+- afficher la fraîcheur du prix et ne jamais laisser croire qu’un ancien prix est actuel ;
+- produire un libellé de station raisonnable à partir des données officielles disponibles, sans inventer une enseigne.
 
-Do not scrape commercial fuel-price sites and do not add another station-price source without an explicit product decision.
+Ne pas scraper de sites commerciaux de prix des carburants et ne pas ajouter une autre source de prix ou de stations sans décision produit explicite.
 
-### Address and city search
+### Recherche d’une adresse ou d’une ville
 
-Use the current official French Geoplateforme/IGN geocoding service. Do not use the retired `api-adresse.data.gouv.fr` endpoint, which was scheduled for decommissioning in January 2026.
+Utiliser le service officiel actuel de géocodage de la Géoplateforme/IGN. Ne pas utiliser l’ancien point d’accès `api-adresse.data.gouv.fr`, dont l’arrêt était prévu en janvier 2026.
 
-Debounce typed searches, require a useful minimum query length, limit results to France, and avoid a network request for every keystroke.
+Temporiser les recherches saisies, imposer une longueur minimale pertinente, limiter les résultats à la France et éviter une requête réseau à chaque caractère.
 
-### Map
+### Carte
 
-Use only `Maps SDK for Android` for this prototype. Do not enable or integrate Google Places, Routes, Directions, Distance Matrix, or Google Geocoding unless the user explicitly expands the scope.
+Utiliser uniquement `Maps SDK for Android` pour ce prototype. Ne pas activer ni intégrer Google Places, Routes, Directions, Distance Matrix ou Google Geocoding sans extension explicite du périmètre par l’utilisateur.
 
-## Secrets and Google Maps security
+## Secrets et sécurité Google Maps
 
-The user stores the development key in root `local.properties` as:
+L’utilisateur conserve la clé de développement dans le fichier racine `local.properties` sous la forme `MAPS_API_KEY=...`.
 
-`MAPS_API_KEY=...`
+Exigences :
 
-Requirements:
+- ne jamais lire, afficher, journaliser, copier, exposer ou versionner la clé ;
+- ne jamais placer la clé en clair dans un fichier Kotlin, XML ou Gradle, dans les tests, les captures d’écran ou la documentation ;
+- l’injecter dans le manifeste avec Google Maps Platform Secrets Gradle Plugin ;
+- utiliser la métadonnée `com.google.android.geo.API_KEY` dans le manifeste ;
+- conserver `local.properties` dans `.gitignore` ;
+- considérer que la clé Cloud est limitée au package `com.francotte.gasoilaroundme`, à l’empreinte SHA-1 appropriée et à Maps SDK for Android uniquement.
 
-- never read, print, log, copy, expose, or commit the key;
-- never place the literal key in Kotlin, XML, Gradle files, tests, screenshots, or documentation;
-- inject it into the manifest with the Google Maps Platform Secrets Gradle Plugin;
-- use the manifest metadata name `com.google.android.geo.API_KEY`;
-- keep `local.properties` ignored;
-- assume the Cloud key is restricted to package `com.francotte.gasoilaroundme`, the relevant signing SHA-1, and Maps SDK for Android only.
+Lors de la publication, utiliser des identifiants séparés et correctement restreints pour la signature de production. Ne pas confondre l’empreinte SHA-1 de développement avec le certificat de production Google Play.
 
-Use separate properly restricted credentials for release signing when publishing. The debug SHA-1 must not be treated as the Play production signing certificate.
+## Localisation et confidentialité
 
-## Location and privacy behavior
+- Demander l’autorisation de localisation dans son contexte d’utilisation, et non immédiatement sans explication.
+- Prendre en charge la localisation approximative comme la localisation précise au premier plan.
+- L’application doit rester utilisable après un refus grâce à la recherche manuelle.
+- Ne pas redemander continuellement l’autorisation après un refus. En cas de refus définitif, proposer l’ouverture des réglages seulement lorsque cela est utile.
+- Ne transmettre la position que sous forme de coordonnées nécessaires à la requête directe des stations ; ne pas conserver ni profiler un historique des positions.
+- Ne pas demander l’accès aux contacts, à l’état du téléphone, à l’identifiant publicitaire, à la localisation en arrière-plan ou à toute autorisation sans rapport avec le besoin.
+- Prévoir des états explicites pour le chargement, l’absence de résultat, le mode hors connexion, le refus de permission et les erreurs du service distant.
 
-- Ask for location permission in context, not immediately without explanation.
-- Support both approximate and precise foreground location.
-- The app must remain useful after denial by presenting manual search.
-- Do not repeatedly prompt after denial and handle permanent denial with a settings action only when useful.
-- Do not send the user's location anywhere except as coordinates required for the direct station query; do not persist or profile location history.
-- Do not request contacts, phone state, advertising ID, background location, or unrelated permissions.
-- Provide clear loading, empty, offline, permission-denied, and upstream-error states.
+## Principes d’architecture
 
-## Architecture guidelines
+Garder le prototype simple, tout en définissant des frontières claires afin qu’un backend puisse remplacer l’accès direct à l’API ultérieurement :
 
-Keep the prototype simple but maintain clear boundaries so a backend can replace the direct API later:
+- `data` : DTO de l’API, sources distantes, analyse des réponses et implémentations des repositories ;
+- `domain` : modèles de station et de carburant, contrats des repositories, calcul de Haversine, filtrage et tri ;
+- `ui` : écrans et composants, état d’interface immuable et ViewModels ;
+- `location` : petite abstraction de la localisation Android ;
+- `navigation` : utilitaire d’ouverture d’une application de navigation externe.
 
-- `data`: API DTOs, remote data sources, parsing, repository implementations;
-- `domain`: station/fuel models, repository contracts, Haversine calculation, filtering and sorting;
-- `ui`: screens/components, immutable UI state, ViewModels;
-- `location`: a small platform location abstraction;
-- `navigation`: external navigation-intent helper.
+Privilégier un flux de données unidirectionnel. Les composables affichent un état et émettent des événements ; le réseau, l’analyse des réponses, le filtrage, la localisation et le tri ne doivent pas être effectués directement dans les composables.
 
-Prefer unidirectional data flow. Composables should render state and emit events; networking, parsing, filtering, location work, and sorting do not belong directly in composables.
+Utiliser les coroutines avec concurrence structurée. Annuler les anciennes recherches d’adresses et les anciens chargements de stations devenus inutiles. Éviter les abstractions prématurées, les frameworks d’injection de dépendances, les bases de données et les modules supplémentaires tant que le prototype n’en a pas besoin. Centraliser les dépendances dans `gradle/libs.versions.toml`.
 
-Use coroutines with structured concurrency. Cancel obsolete address searches and station loads. Avoid unnecessary abstractions, dependency-injection frameworks, databases, and modules until the prototype needs them. Dependencies should be centralized in `gradle/libs.versions.toml`.
+La frontière du repository doit exposer un modèle applicatif stable et ne pas laisser les DTO Opendatasoft remonter jusqu’à l’interface. Cette frontière permettra une future migration vers un backend.
 
-The repository boundary should expose a stable app model rather than leaking Opendatasoft DTOs into the UI. This boundary is the future seam for a backend migration.
+## Exigences d’interface et d’interaction
 
-## UI and interaction requirements
+- Concevoir l’interface bord à bord en respectant les marges système.
+- Ne pas masquer l’attribution cartographique ni la marque Google.
+- Le bottom sheet ne doit pas recouvrir définitivement les commandes essentielles de la carte.
+- Les sélections de carburant et de tri doivent être évidentes et accessibles.
+- Tri par défaut : prix valide le plus bas pour le carburant sélectionné.
+- Autre tri : station la plus proche selon la distance à vol d’oiseau.
+- Distinguer clairement un prix absent, une rupture déclarée, un prix ancien et une erreur réseau.
+- La sélection d’un marqueur doit révéler ou sélectionner la ligne correspondante ; la sélection d’une ligne doit mettre en évidence son marqueur.
+- Afficher le logo de l’enseigne sur la carte, dans la liste et dans la fiche lorsqu’elle est identifiée de façon suffisamment fiable ; utiliser un pictogramme de pompe générique dans les autres cas.
+- Utiliser des textes français et le formatage français des nombres, par exemple `1,789 €/L` et `3,2 km`.
+- Fournir des descriptions de contenu et des zones tactiles adaptées à l’accessibilité.
 
-- Design for edge-to-edge layouts and system insets.
-- Keep map attribution and Google branding unobscured.
-- Ensure the bottom sheet does not permanently cover essential map controls.
-- Fuel selection and sort selection must be obvious and accessible.
-- Default sort: lowest valid price for the selected fuel.
-- Alternative sort: nearest by straight-line distance.
-- Clearly distinguish missing price, reported shortage, stale price, and network failure.
-- Selecting a marker should reveal/select its station row; selecting a row should focus its marker.
-- Do not require or fabricate commercial station logos for MVP.
-- Use French copy and French number formatting, for example `1,789 €/L` and `3,2 km`.
-- Provide content descriptions and touch targets suitable for accessibility.
+### Marqueurs de prix sur la carte
 
-## Networking and resilience
+S’inspirer particulièrement de `1788170251615.jpg` pour les éléments affichés au-dessus de la carte. Chaque station possédant un prix valide pour le carburant sélectionné doit disposer d’un marqueur compact composé :
 
-- Declare only the normal Internet permission plus required foreground location permissions.
-- Use HTTPS exclusively.
-- Apply reasonable connect/read timeouts.
-- Limit API fields and records where the official API permits it.
-- Do not load all of France on every camera movement.
-- Debounce map-driven refreshes and avoid duplicate concurrent requests.
-- Preserve the last successful in-memory result during transient refresh failures when practical.
-- API failures must produce a recoverable UI with a retry action, not a crash.
+- d’un encart coloré à coins arrondis contenant le prix en grand, par exemple `1,990 €` ;
+- d’une petite pointe ancrée précisément sur les coordonnées de la station ;
+- du logo de l’enseigne au-dessus ou à côté du prix lorsqu’il est disponible, sinon d’un pictogramme générique de pompe ;
+- d’un état sélectionné visuellement distinct, sans dépendre uniquement de la couleur.
 
-## Testing expectations
+Prévoir un catalogue interne d’enseignes permettant d’associer un identifiant stable à un nom normalisé, à un logo local et à un libellé accessible. Ce catalogue peut notamment couvrir les principales enseignes françaises telles que TotalEnergies, Esso, BP, Avia et les stations de la grande distribution.
 
-At minimum, add deterministic unit tests for:
+N’utiliser que des logos provenant d’une source officielle ou d’un kit média dont l’usage dans l’application a été vérifié. Conserver la provenance et les éventuelles conditions d’utilisation de chaque ressource. Ne pas extraire les logos des captures d’écran et ne pas télécharger arbitrairement des images issues d’un moteur de recherche.
 
-- official fuel-field mapping;
-- nullable/malformed API parsing;
-- Haversine distance calculation;
-- radius filtering;
-- price and distance sorting;
-- shortage and missing-price handling;
-- stale request cancellation or result replacement where relevant.
+L’enseigne ne doit jamais être déduite du prix, des couleurs du marqueur ou d’une ressemblance approximative. La résolution doit suivre une règle explicite et testable à partir des données disponibles ou d’une table de correspondance contrôlée. En cas d’absence ou d’ambiguïté, afficher le pictogramme générique et le meilleur libellé officiel disponible plutôt qu’un logo potentiellement erroné.
 
-Add focused Compose/UI tests for important state transitions when practical. Do not make unit tests depend on live government, IGN, or Google services. Keep parsing fixtures small and representative.
+La couleur traduit la position relative du prix parmi les stations actuellement comparables pour le carburant sélectionné :
 
-Before handing off changes, run the narrowest relevant checks and then, when possible on Windows:
+- vert : prix parmi les moins chers ;
+- orange : prix intermédiaire ;
+- rouge : prix parmi les plus élevés ;
+- gris : prix manquant, indisponible, ancien au-delà du seuil retenu ou carburant en rupture, si ce marqueur doit malgré tout rester visible.
+
+Le calcul des catégories doit être déterministe, documenté dans le code et robuste avec peu de résultats ou des prix identiques. Utiliser de préférence des quantiles sur les prix valides actuellement affichés, avec un comportement explicite pour moins de trois prix. Recalculer les catégories lorsque le carburant, la zone ou les résultats changent.
+
+La couleur est une aide visuelle, jamais l’unique information : le prix reste écrit dans l’encart et les états indisponibles disposent d’un libellé ou pictogramme compréhensible. Choisir des couleurs suffisamment contrastées, testables en thème clair et sombre, et compatibles autant que possible avec les déficiences de perception des couleurs.
+
+Éviter que les marqueurs rendent la carte illisible :
+
+- à faible niveau de zoom, regrouper les stations proches ou réduire la densité affichée ;
+- à un niveau de zoom utile, afficher les encarts de prix complets ;
+- maintenir la station sélectionnée au premier plan ;
+- ne pas masquer la position de l’utilisateur, les commandes de recentrage ni l’attribution Google ;
+- assurer la cohérence entre la couleur du marqueur et les informations de la ligne correspondante dans le bottom sheet.
+
+Les marqueurs doivent être générés à partir de composants ou ressources internes et mis en cache par combinaison utile de prix, couleur et état. Ne pas recréer inutilement tous les bitmaps à chaque recomposition Compose ou mouvement de caméra.
+
+## Réseau et résilience
+
+- Ne déclarer que la permission Internet habituelle et les permissions de localisation au premier plan nécessaires.
+- Utiliser exclusivement HTTPS.
+- Appliquer des délais de connexion et de lecture raisonnables.
+- Limiter les champs et le nombre d’enregistrements demandés lorsque l’API officielle le permet.
+- Ne pas charger toute la France à chaque déplacement de la caméra.
+- Temporiser les actualisations liées à la carte et éviter les requêtes concurrentes en double.
+- Conserver en mémoire le dernier résultat valide lors d’un échec temporaire d’actualisation lorsque cela est raisonnable.
+- Toute erreur d’API doit produire un état récupérable avec une action de nouvelle tentative, et non un plantage.
+
+## Exigences de test
+
+Ajouter au minimum des tests unitaires déterministes pour :
+
+- l’association entre les carburants et les champs officiels ;
+- l’analyse des données absentes, nulles ou malformées ;
+- le calcul de la distance de Haversine ;
+- le filtrage par rayon ;
+- le tri par prix et par distance ;
+- la gestion des ruptures et des prix absents ;
+- la normalisation des enseignes, l’association des logos et le fallback générique ;
+- l’annulation ou le remplacement des anciennes requêtes lorsqu’ils sont pertinents.
+
+Ajouter des tests Compose ou d’interface ciblés pour les transitions d’état importantes lorsque cela est raisonnable. Les tests unitaires ne doivent pas dépendre des services gouvernementaux, IGN ou Google réels. Garder les données de test petites et représentatives.
+
+Avant de livrer des changements, exécuter les vérifications les plus ciblées puis, lorsque cela est possible sous Windows :
 
 ```powershell
 .\gradlew testDebugUnitTest
 .\gradlew assembleDebug
 ```
 
-Never print `local.properties` as part of diagnostics or test output.
+Ne jamais afficher `local.properties` dans les diagnostics ou les sorties de test.
 
-## Definition of done for the first usable prototype
+## Définition d’un premier prototype utilisable
 
-The prototype is usable when a fresh install can:
+Le prototype est utilisable lorsqu’une nouvelle installation peut :
 
-1. explain and request foreground location;
-2. center the map from an accepted approximate or precise location;
-3. fall back to a French city/address search after refusal or location failure;
-4. retrieve nearby official stations for the chosen point;
-5. switch among all six fuel choices;
-6. show markers and a synchronized bottom-sheet list;
-7. sort valid results by price or straight-line distance;
-8. communicate missing, stale, or unavailable prices honestly;
-9. open external navigation for a station;
-10. recover gracefully from offline/API errors without exposing secrets.
+1. expliquer puis demander la localisation au premier plan ;
+2. centrer la carte à partir d’une position approximative ou précise acceptée ;
+3. proposer une recherche française par ville ou adresse après un refus ou un échec de localisation ;
+4. récupérer les stations officielles proches du point choisi ;
+5. basculer entre les six carburants ;
+6. afficher des marqueurs et une liste synchronisée dans le bottom sheet ;
+7. trier les résultats valides par prix ou par distance à vol d’oiseau ;
+8. signaler honnêtement les prix absents, anciens ou indisponibles ;
+9. ouvrir une application de navigation externe pour une station ;
+10. gérer correctement les erreurs réseau ou d’API sans exposer de secret.
 
-## Out of scope unless explicitly requested
+## Hors périmètre sauf demande explicite
 
-- backend, scheduled ingestion, database, or station-data aggregation;
-- authentication and user accounts;
-- favorites synchronized across devices;
-- price alerts or notifications;
-- historical price charts;
-- crowdsourced price verification;
-- ads, subscriptions, purchases, or analytics;
-- background location or trip monitoring;
-- route duration/distance for every station;
-- iOS, web, or markets outside France.
+- backend, import planifié, base de données ou agrégation de données de stations ;
+- authentification et comptes utilisateur ;
+- favoris synchronisés entre appareils ;
+- alertes de prix ou notifications ;
+- historique et graphiques de prix ;
+- vérification communautaire des prix ;
+- publicités, abonnements, achats ou suivi analytique ;
+- localisation en arrière-plan ou suivi d’un trajet ;
+- distance routière et durée de trajet pour chaque station ;
+- versions iOS ou web et marchés hors de France.
 
-If a future request conflicts with these constraints, call out the product or cost implication before changing the architecture.
+Si une future demande entre en conflit avec ces contraintes, expliquer ses conséquences produit ou financières avant de modifier l’architecture.
